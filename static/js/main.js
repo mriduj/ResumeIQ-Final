@@ -36,8 +36,8 @@ const POPULAR_ROLES = [
   'Photographer', 'Social Media Manager', 'HR Manager', 'Project Engineer'
 ];
 
-// Base URL for all API calls — points to the Flask backend
-const API = 'http://localhost:5000/api';
+// Base URL for all API calls — relative path works on any host (local or Render)
+const API = '/api';
 
 
 // ─────────────────────────────────────────
@@ -390,7 +390,7 @@ async function analyzeCandidate() {
   } catch (err) {
     clearInterval(stepInterval);
     console.error(err);
-    alert('Analysis failed. Is the Flask server running?\n\n' + err.message);
+    alert('Analysis failed. Please try again.\n\n' + err.message);
   } finally {
     document.getElementById('c-loading').classList.remove('show');
     document.getElementById('c-analyze-btn').disabled = false;
@@ -549,7 +549,7 @@ async function analyzeHR() {
 
   } catch (err) {
     console.error(err);
-    alert('Screening failed. Is the Flask server running?\n\n' + err.message);
+    alert('Screening failed. Please try again.\n\n' + err.message);
   } finally {
     document.getElementById('hr-loading').classList.remove('show');
     document.getElementById('hr-analyze-btn').disabled = false;
