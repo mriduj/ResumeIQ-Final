@@ -8,3 +8,4 @@ pdfplumber==0.11.3    # Extracts text from PDF files
 python-docx==1.1.2    # Extracts text from DOCX (Word) files
 werkzeug==3.0.4       # Flask dependency — also used for secure filename handling
 gunicorn==21.2.0
+groq
