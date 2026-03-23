@@ -22,7 +22,7 @@ from ai_engine import (
 # ─────────────────────────────────────────
 # App Configuration
 # ─────────────────────────────────────────
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app)
 
 UPLOAD_FOLDER = "uploads"
@@ -43,9 +43,11 @@ def allowed_file(filename: str) -> bool:
 # Routes — Basic
 # ─────────────────────────────────────────
 
+from flask import render_template
+
 @app.route("/")
-def home():
-    return "ResumeIQ backend is live 🚀"
+def index():
+    return render_template("index.html")
 
 
 @app.route("/api/health", methods=["GET"])
