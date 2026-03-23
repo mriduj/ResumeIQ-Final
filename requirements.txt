@@ -1,0 +1,10 @@
+# ResumeIQ — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+flask==3.0.3          # Web framework — handles routing and HTTP requests
+flask-cors==4.0.1     # Allows the frontend (JS) to call the Flask API
+google-generativeai==0.7.2
+pdfplumber==0.11.3    # Extracts text from PDF files
+python-docx==1.1.2    # Extracts text from DOCX (Word) files
+werkzeug==3.0.4       # Flask dependency — also used for secure filename handling
+gunicorn==21.2.0
