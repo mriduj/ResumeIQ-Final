@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeIQ — AI Resume Screening</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Our stylesheet -->
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <!-- ── Navigation ── -->
+  <nav>
+    <div class="logo">ResumeIQ</div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('candidate', this)">Candidate</button>
+      <button class="tab-btn" onclick="switchTab('hr', this)">HR Portal</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ── Hero ── -->
+    <div class="hero">
+      <div class="hero-badge">✦ Powered by Claude AI · Every Role · Every Domain</div>
+      <h1>Does Your Resume <span>Match</span> the Role?</h1>
+      <p>Type any job title — from Surgeon to Barista to Game Developer. Our AI screens your resume and tells you exactly where you stand.</p>
+    </div>
+
+    <!-- ════════════════════════════════════
+         CANDIDATE PANEL
+    ════════════════════════════════════ -->
+    <div id="candidate-panel" class="panel active">
+
+      <!-- Step 1: Upload Resume -->
+      <div class="card">
+        <div class="card-label">Step 1 — Resume</div>
+        <h2>Upload Your Resume</h2>
+        <p class="card-sub">PDF, DOCX, or TXT — max 5MB</p>
+
+        <div class="upload-zone" id="c-upload-zone"
+          onclick="document.getElementById('c-file').click()"
+          ondrop="handleDrop(event, 'c')"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)">
+          <span class="upload-icon">📄</span>
+          <h3>Click to browse or drag &amp; drop</h3>
+          <p>Your file is processed on the server, then discarded</p>
+          <div class="file-badge" id="c-file-badge" style="display:none">
+            <span>✓</span><span id="c-file-name-text"></span>
+          </div>
+        </div>
+        <input type="file" id="c-file" accept=".pdf,.docx,.txt" style="display:none"
+          onchange="handleFileSelect(event, 'c')" />
+      </div>
+
+      <!-- Step 2: Role Selection (AI-powered) -->
+      <div class="card">
+        <div class="card-label">Step 2 — Target Role (AI-Powered)</div>
+        <h2>What role are you applying for?</h2>
+        <p class="card-sub">Type anything — Claude AI suggests matching roles from any domain in real time</p>
+
+        <div id="c-role-input-area">
+          <div class="role-wrap" id="c-role-wrap">
+            <div class="role-row">
+              <input type="text" id="c-role-search" class="role-input"
+                placeholder="e.g. makeup artist, nurse, game developer, chef..."
+                autocomplete="off"
+                oninput="onRoleType('c')"
+                onkeydown="onRoleKey(event, 'c')"
+                onfocus="onRoleFocus('c')"
+                onblur="onRoleBlur('c')" />
+              <button class="suggest-btn" id="c-suggest-btn" onclick="fetchSuggestions('c')">
+                <span class="btn-spinner" id="c-btn-spinner"></span>
+                <span class="btn-label" id="c-btn-label">✦ AI Suggest</span>
+              </button>
+            </div>
+            <div class="role-dropdown" id="c-dd"></div>
+          </div>
+          <div class="ai-hint">
+            <span class="ai-dot"></span>
+            Claude AI reads your query and suggests roles from any professional field
+          </div>
+        </div>
+
+        <div class="selected-role" id="c-selected-role" style="display:none">
+          <span class="selected-icon">✦</span>
+          <span class="selected-text" id="c-selected-text"></span>
+          <button class="change-btn" onclick="changeRole('c')">change role</button>
+        </div>
+        <input type="hidden" id="c-role-val" />
+      </div>
+
+      <!-- Analyze Button -->
+      <button class="analyze-btn" id="c-analyze-btn" onclick="analyzeCandidate()">
+        ✦ Analyze My Resume
+      </button>
+
+      <!-- Loading State -->
+      <div class="loading" id="c-loading">
+        <div class="spinner"></div>
+        <div>
+          <div class="loading-title">Analyzing your resume...</div>
+          <div class="loading-step" id="c-loading-step">Extracting your skills</div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="results" id="c-results">
+        <div class="section-divider">Analysis Complete</div>
+
+        <!-- No Match State -->
+        <div id="c-no-match" style="display:none">
+          <div class="no-match-banner">
+            <span class="no-match-icon">🚫</span>
+            <h2>Not a Match</h2>
+            <div class="no-match-score" id="c-nm-score">0%</div>
+            <p class="no-match-desc" id="c-nm-desc"></p>
+            <div id="c-alt-roles-wrap" style="display:none">
+              <div class="alt-label">You may be better suited for</div>
+              <div class="alt-roles" id="c-alt-roles"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-label">How To Bridge The Gap</div>
+            <h2 style="margin-bottom:1.25rem">Your Path Forward</h2>
+            <div class="suggestions-list" id="c-nm-suggestions"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Skills Assessment</div>
+            <h2 style="margin-bottom:1rem">What You're Missing</h2>
+            <div class="skills-grid" id="c-nm-skills"></div>
+          </div>
+        </div>
+
+        <!-- Normal Match State -->
+        <div id="c-normal-results" style="display:none">
+          <div class="card">
+            <div class="score-section">
+              <div class="score-ring">
+                <svg viewBox="0 0 150 150">
+                  <circle class="ring-bg" cx="75" cy="75" r="65"/>
+                  <circle class="ring-prog" id="c-ring-prog" cx="75" cy="75" r="65"/>
+                </svg>
+                <div class="score-center">
+                  <div class="score-number" id="c-score-number">0%</div>
+                  <div class="score-label">MATCH</div>
+                </div>
+              </div>
+              <div class="score-info">
+                <h3 id="c-verdict-title">—</h3>
+                <p class="verdict-text" id="c-verdict-text">—</p>
+              </div>
+            </div>
+            <div class="skills-grid" id="c-skills-grid"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Improvement Roadmap</div>
+            <h2 style="margin-bottom:1.25rem">What To Work On Next</h2>
+            <div class="suggestions-list" id="c-suggestions"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         HR PANEL
+    ════════════════════════════════════ -->
+    <div id="hr-panel" class="panel">
+
+      <div class="card">
+        <div class="card-label">Screening Configuration</div>
+        <h2 style="margin-bottom:1rem">Setup</h2>
+        <div class="hr-config">
+          <!-- AI Role Input for HR -->
+          <div>
+            <div class="role-wrap" id="hr-role-wrap">
+              <div class="role-row">
+                <input type="text" id="hr-role-search" class="role-input"
+                  placeholder="Type target role..."
+                  autocomplete="off"
+                  oninput="onRoleType('hr')"
+                  onkeydown="onRoleKey(event, 'hr')"
+                  onfocus="onRoleFocus('hr')"
+                  onblur="onRoleBlur('hr')" />
+                <button class="suggest-btn" id="hr-suggest-btn" onclick="fetchSuggestions('hr')">
+                  <span class="btn-spinner" id="hr-btn-spinner"></span>
+                  <span class="btn-label" id="hr-btn-label">✦ AI Suggest</span>
+                </button>
+              </div>
+              <div class="role-dropdown" id="hr-dd"></div>
+            </div>
+            <div class="selected-role" id="hr-selected-role" style="display:none;margin-top:0.5rem">
+              <span class="selected-icon">✦</span>
+              <span class="selected-text" id="hr-selected-text"></span>
+              <button class="change-btn" onclick="changeRole('hr')">change</button>
+            </div>
+            <input type="hidden" id="hr-role-val" />
+          </div>
+          <input type="number" class="threshold-input" id="hr-threshold"
+            placeholder="Min. match % (e.g. 65)" min="0" max="100" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Candidate Resumes</div>
+        <h2>Upload Resumes to Screen</h2>
+        <p class="card-sub">Multiple files supported — PDF, DOCX, TXT</p>
+        <div class="upload-zone" id="hr-upload-zone"
+          onclick="document.getElementById('hr-file').click()"
+          ondrop="handleDrop(event, 'hr')"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)">
+          <span class="upload-icon">📂</span>
+          <h3>Click to browse or drag &amp; drop</h3>
+          <p>Upload one or more candidate resumes at once</p>
+        </div>
+        <input type="file" id="hr-file" accept=".pdf,.docx,.txt" multiple style="display:none"
+          onchange="handleFileSelect(event, 'hr')" />
+        <div class="batch-list" id="hr-batch-list"></div>
+      </div>
+
+      <button class="analyze-btn" id="hr-analyze-btn" onclick="analyzeHR()">
+        ✦ Screen All Candidates
+      </button>
+
+      <div class="loading" id="hr-loading">
+        <div class="spinner"></div>
+        <div>
+          <div class="loading-title">Screening candidates...</div>
+          <div class="loading-step" id="hr-loading-step">Processing resumes</div>
+        </div>
+      </div>
+
+      <div class="results" id="hr-results">
+        <div class="section-divider">Screening Results</div>
+        <div class="card">
+          <div class="card-label">Ranked Candidates</div>
+          <h2 style="margin-bottom:1.25rem">Match Report</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Candidate</th>
+                  <th>Match Score</th>
+                  <th>Status</th>
+                  <th>Key Strengths</th>
+                  <th>Key Gaps</th>
+                </tr>
+              </thead>
+              <tbody id="hr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Our JavaScript -->
+  <script src="/static/js/main.js"></script>
+
+</body>
+</html>
