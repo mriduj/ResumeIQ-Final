@@ -201,11 +201,7 @@ def health_check():
 if __name__ == "__main__":
     print("=" * 50)
     print("  ResumeIQ — AI Resume Screening")
-    print("  Backend running at http://localhost:5000")
     print("=" * 50)
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("\n⚠  WARNING: ANTHROPIC_API_KEY environment variable not set!")
-        print("   Set it with: export ANTHROPIC_API_KEY='your-key-here'\n")
-
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 10000))  # Use Render's PORT
+    app.run(host="0.0.0.0", port=port)
